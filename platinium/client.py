@@ -108,7 +108,7 @@ class Client:
                     days: int = 1) -> List:
         
         uri = self._create_classes_uri()
-        fields = {'LocationId':location_id,
+        fields = {'LocationId':int(location_id),
                   'StartDate':start_date,
                   'Days':days,
                   'UserId':self.api_session_data['UserId']}

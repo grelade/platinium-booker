@@ -5,8 +5,10 @@ import json
 
 from platinium import Client
 from platinium import APIException
+from check_classes import CompareClasses
 
 dt = None
+#dt = -timedelta(minutes=9)
 # dt = - timedelta(days=5)+timedelta(hours=2,minutes=31,seconds=0)
 #dt = -timedelta(minutes=10*60+30+10)
 
@@ -23,11 +25,18 @@ def get_current_time():
         t = t + dt
     return t
 
-def load_classes(file):
+def load_classes(file,mode='list'):
     with open(file,'r') as file:
         c = json.load(file)
-    classes = [val for key,val in c.items()]
-    return classes
+        
+    if mode == 'list':
+        classes = [val for key,val in c.items()]        
+        return classes
+    elif mode == 'dict':
+        return c
+    else:
+        print('unknown load_classes mode')
+
 
 with open('auth.json','r') as file:
     d = json.load(file)
@@ -35,7 +44,7 @@ with open('auth.json','r') as file:
 username = d['username']
 password = d['password']
 
-client = Client(username=username, password=password, auto_log=False)
+client = Client(username=username, password=password, auto_log=True)
 
 # classes = list()
 # #MONDAY
@@ -58,23 +67,42 @@ client = Client(username=username, password=password, auto_log=False)
 # classes+=[[{'location_id':3,'class_name':'TABATA','class_id':2830,'class_time':'09:00'},
 #            {'location_id':3,'class_name':'XCO','class_id':1033,'class_time':'09:00'}]]
 
-classes = load_classes('classes.json')
+classes = load_classes('classes.json',mode='list')
+classes_dict = load_classes('classes.json',mode='dict')
 
 timestep= .001
 no_tries = 5
 t_reconnect = 3500 #session_time = 3600
+
+cc = CompareClasses(client,classes_dict)
 
 async def reserve_loop():
     t_now = get_current_time()
     current_weekday = t_now.weekday()
 
     print(f'{t_now}: standby')
+    check_classes = True
+    
     while True:
         await asyncio.sleep(timestep)
         t_now = get_current_time()
         new_weekday = t_now.weekday()
+        
+        # do reservation list checks before making any reservations
+        t_now_plus_delta = t_now+timedelta(seconds=t_reconnect)
+        if (t_now_plus_delta.weekday() != current_weekday) and check_classes:
+            print('reservation is near... comparing classes')
+            cc._set_dates(start_date = t_now_plus_delta,
+                          week_ahead = 0,
+                          days_ahead = 1)
+            cc._generate_dfs()
+            cc._generate_matches()
+            cc._print_nonverbose()
+            check_classes = False
+            
         if current_weekday != new_weekday:
             current_weekday = new_weekday
+            check_classes = True #put the flag back
 
             for cls in classes[current_weekday]:
                 h,m = cls['class_time'].split(':')

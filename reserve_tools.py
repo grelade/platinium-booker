@@ -173,7 +173,7 @@ def generate_online_classes_df(client : Client,
                                days_forward : int = 7,
                                cols : List = ONLINE_CLASSES_COLUMNS) -> DataFrame:
     '''
-    generate dataframe of online classes starting from start_date for days_forward days
+    generate dataframe of online classes starting from start_date up to days_forward days
     '''
     out = []
 
@@ -181,14 +181,13 @@ def generate_online_classes_df(client : Client,
         out += client.get_classes(location_id=lid,
                                  start_date=date.isoformat(),
                                  days=days_forward)
-
+    
     online_classes_df = pd.DataFrame(out)
     online_classes_df = online_classes_df.reset_index()
     online_classes_df = online_classes_df.drop(labels=['index'],axis=1)
     online_classes_df.index.name = ONLINE_CLASSES_INDEX
     
     if all (k in online_classes_df.columns for k in cols):
-        
         online_classes_df = online_classes_df.loc[:,cols]
     else:
         raise KeyError('unknown name in cols')

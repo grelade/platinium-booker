@@ -16,7 +16,7 @@ class booker:
                  timestep: float = 0.001,
                  no_tries: int = 5,
                  t_reconnect: int = 3500,
-                 dt: str = '0'):
+                 dt: timedelta = timedelta(seconds=0)):
 
         self.authfile = authfile
         self.reservefile = reservefile
@@ -24,7 +24,7 @@ class booker:
         self.timestep = timestep
         self.no_tries = no_tries
         self.t_reconnect = timedelta(seconds=t_reconnect)
-        self.dt = str_to_timedelta(dt)
+        self.dt = dt
 
     def prepare_booker(self):
 
@@ -79,8 +79,8 @@ class booker:
             if (t_now_plus_delta.weekday() != current_weekday) and check_classes:
                 print('reservation is near... comparing classes')
                 self.cc._set_dates(start_date = t_now_plus_delta,
-                                   week_ahead = 0,
-                                   days_ahead = 1)
+                                   week_ahead = 1,
+                                   days_ahead = 7)
                 self.cc._generate_dfs()
                 self.cc._generate_matches()
                 self.cc._print_nonverbose()
@@ -175,7 +175,7 @@ def str_to_timedelta(s: str) -> timedelta:
     prefix = s[0]
     
     ss = s.lstrip('r').split(':')
-    print(ss)
+    
     out = [0,0,0]
     if len(ss)==1:
         out[-1] = int(ss[0])
@@ -185,13 +185,12 @@ def str_to_timedelta(s: str) -> timedelta:
     elif len(ss)==3:
         out = list(map(lambda x: int(x),ss))
     
-    print(out)
+
     delta = timedelta(hours=out[0],minutes=out[1],seconds=out[2])
     
     if prefix=='r':
         delta = -delta
-        
-    print(delta)    
+         
     return delta
             
 async def main(booker):
@@ -206,6 +205,7 @@ if __name__ == "__main__":
     parser.add_argument('--authfile', type=str, default='auth.json')
     parser.add_argument('--reservefile', type=str, default='reservations.json')
     parser.add_argument('--dt', type=str, default='0',help='set global advance time lag in formats {r}HH:MM:SS, {r}MM:SS, {r}SS (use prefix {r} for retarded)')
+    parser.add_argument('--local_time', type=str, default='', help='set initial local script time in isoformat YYYY-MM-DD HH:MM:SS (useful for tests of reservations; overwrites --dt parameter)')
     parser.add_argument('--timestep', type=float, default=0.001 ,help='micro-timestep')
     parser.add_argument('--t_reconnect', type=int, default=3600 ,help='client reconnect time')
     parser.add_argument('--no_tries', type=int, default=5 ,help='number of unsuccesful tries before exit')
@@ -216,7 +216,12 @@ if __name__ == "__main__":
     authfile = args.authfile
     reservefile = args.reservefile
     
-    dt = args.dt
+    dt = str_to_timedelta(args.dt)
+    local_time = args.local_time
+    
+    if local_time!='':
+        dt = datetime.fromisoformat(local_time) - datetime.now() 
+        
     timestep = args.timestep
     no_tries = args.no_tries
     t_reconnect = args.t_reconnect
@@ -225,10 +230,10 @@ if __name__ == "__main__":
 
     b = booker(authfile=authfile,
                reservefile=reservefile,
-               dt=dt,
                timestep=timestep,
                no_tries=no_tries,
-               t_reconnect=t_reconnect)
+               t_reconnect=t_reconnect,
+               dt=dt)
     
     print("="*100)
     print(f"auth file: {authfile}")

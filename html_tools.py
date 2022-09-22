@@ -1,5 +1,5 @@
 import json
-from datetime import datetime
+from datetime import datetime,timedelta
 from json2html import json2html
 from tqdm import tqdm
 
@@ -14,11 +14,11 @@ def generate_tab(client: Client,
     generate html table with classes available at location_id
     '''
     if start_date == None:
-        start_date = datetime.now()
+        start_date = datetime.now().replace(hour=0,minute=0,second=0,microsecond=0) + timedelta(days=1)
         
     online_classes_df = generate_online_classes_df(client=client,
                                                    location_ids=[location_id],
-                                                   date=start_date)
+                                                   date=start_date,days_forward=7)
 
     online_classes_df['StartTime'] = online_classes_df['StartTime'].apply(StartTime_to_class_time)
     online_classes_df['DayOfWeek'] = online_classes_df['DayOfWeek'].apply(DayOfWeek_to_weekday)
@@ -41,7 +41,7 @@ def generate_tab(client: Client,
     for day in rdict.values():
         if day not in pvt.index:
             pvt.loc[day] = ''
-            print(day)
+            # print(day)
     
     pvt = pvt.loc[rdict.values()]
     inpt = pvt.to_dict()

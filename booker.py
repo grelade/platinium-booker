@@ -16,7 +16,7 @@ class booker:
                  timestep: float = 0.001,
                  no_tries: int = 5,
                  t_reconnect: int = 3500,
-                 dt: int = 0):
+                 dt: str = '0'):
 
         self.authfile = authfile
         self.reservefile = reservefile
@@ -24,7 +24,7 @@ class booker:
         self.timestep = timestep
         self.no_tries = no_tries
         self.t_reconnect = timedelta(seconds=t_reconnect)
-        self.dt = timedelta(seconds=dt)
+        self.dt = str_to_timedelta(dt)
 
     def prepare_booker(self):
 
@@ -90,7 +90,7 @@ class booker:
                 current_weekday = new_weekday
                 check_classes = True #put the flag back
 
-                for cls in classes[current_weekday]:
+                for cls in self.classes[current_weekday]:
                     h,m = cls['class_time'].split(':')
                     date = t_now.replace(hour=int(h),minute=int(m),second=0,microsecond=0)+timedelta(days=7)
                     class_id = cls['class_id']
@@ -129,7 +129,7 @@ class booker:
                     if not success:
                         #figure out reason
                         date0 = t_now.replace(hour=int(0),minute=int(0),second=0,microsecond=0)+timedelta(days=7)
-                        out_class = client.get_classes(location_id=cls['location_id'],start_date=date0.isoformat())
+                        out_class = self.client.get_classes(location_id=cls['location_id'],start_date=date0.isoformat())
 
                         match_cls = []
                         for c in out_class:
@@ -170,6 +170,30 @@ class booker:
             #print(client.access_token)
 
 
+def str_to_timedelta(s: str) -> timedelta:
+    
+    prefix = s[0]
+    
+    ss = s.lstrip('r').split(':')
+    print(ss)
+    out = [0,0,0]
+    if len(ss)==1:
+        out[-1] = int(ss[0])
+    elif len(ss)==2:
+        out[-1] = int(ss[1])
+        out[-2] = int(ss[0])
+    elif len(ss)==3:
+        out = list(map(lambda x: int(x),ss))
+    
+    print(out)
+    delta = timedelta(hours=out[0],minutes=out[1],seconds=out[2])
+    
+    if prefix=='r':
+        delta = -delta
+        
+    print(delta)    
+    return delta
+            
 async def main(booker):
     t1 = asyncio.create_task(booker.reserve_loop())
     t2 = asyncio.create_task(booker.login_loop())
@@ -181,7 +205,7 @@ if __name__ == "__main__":
 
     parser.add_argument('--authfile', type=str, default='auth.json')
     parser.add_argument('--reservefile', type=str, default='reservations.json')
-    parser.add_argument('--dt', type=int, default=0,help='set global advance time lag in seconds (negative for retarded)')
+    parser.add_argument('--dt', type=str, default='0',help='set global advance time lag in formats {r}HH:MM:SS, {r}MM:SS, {r}SS (use prefix {r} for retarded)')
     parser.add_argument('--timestep', type=float, default=0.001 ,help='micro-timestep')
     parser.add_argument('--t_reconnect', type=int, default=3600 ,help='client reconnect time')
     parser.add_argument('--no_tries', type=int, default=5 ,help='number of unsuccesful tries before exit')
@@ -191,6 +215,7 @@ if __name__ == "__main__":
 
     authfile = args.authfile
     reservefile = args.reservefile
+    
     dt = args.dt
     timestep = args.timestep
     no_tries = args.no_tries
@@ -208,7 +233,8 @@ if __name__ == "__main__":
     print("="*100)
     print(f"auth file: {authfile}")
     print(f"reservations file: {reservefile}")
-    print(f"time lag dt = {dt} sec")
+    print(f"time lag dt = {dt} ")
+    print(f"script local time: {datetime.now()+b.dt}")
     print(f"micro-timestep = {timestep} sec")
     print(f"client reconnect time = {t_reconnect} sec")
     print(f"number of tries before exit = {no_tries}")

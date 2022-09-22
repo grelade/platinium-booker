@@ -1,4 +1,3 @@
-import argparse
 from datetime import datetime,timedelta
 import json
 import numpy as np
@@ -344,57 +343,3 @@ def print_nonverbose(classes_df: DataFrame,
     print(cdf)
 
 
-if __name__ == "__main__":
-
-    parser = argparse.ArgumentParser()
-
-    parser.add_argument('--authfile', type=str, default='auth.json')
-    parser.add_argument('--classfile', type=str, default='classes.json')
-    parser.add_argument('--week_ahead', type=int, default=1)
-    parser.add_argument('--verbose', const=True, action='store_const', default=False)
-
-    args = parser.parse_args()
-
-    with open(args.authfile,'r') as file:
-        d = json.load(file)
-
-    username = d['username']
-    password = d['password']
-
-    client = Client(username=username,password=password,auto_log=True)
-
-    with open(args.classfile,'r') as file:
-        classes = json.load(file)
-        
-    week_ahead = args.week_ahead  
-    verbose = args.verbose
-    
-    cc = CompareClasses(client,classes)
-    cc._set_dates()
-    cc._generate_dfs()
-    cc._generate_matches()
-    
-    if verbose:
-        cc._print_verbose()
-    else:
-        cc._print_nonverbose()
-        
-#     classes_df = generate_own_classes_df(classes)
-#     location_ids = extract_location_ids(classes_df)
-#     start_date = datetime.today()+timedelta(days=week_ahead*7)
-    
-#     online_classes_df = generate_online_classes_df(cl,location_ids,start_date,7)
-#     abs_times = online_classes_df['StartTime'].copy()
-    
-#     classes_df, online_classes_df = transform_dfs(classes_df,online_classes_df)
-#     classes_df, online_classes_df = sort_dfs(classes_df,online_classes_df,abs_times)
-
-#     classes_df, online_classes_df, candidate_pairs_df = form_candidate_pairs(classes_df,online_classes_df)   
-#     basic_matches_df, exact_matches_df = extract_matches(classes_df, online_classes_df, candidate_pairs_df)
-    
-#     if verbose:
-        
-#         print_verbose(classes_df,online_classes_df,basic_matches_df,exact_matches_df)
-#     else:
-        
-#         print_nonverbose(exact_matches_df,abs_times)

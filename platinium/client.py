@@ -79,11 +79,13 @@ class Client:
         return self._handle_response(response)
 
     def _handle_response(self,response: requests.Response) -> Dict:
+        # self.response = response
         if not (200 <= response.status_code < 300):
             raise APIException(response, response.status_code, response.text)
         try:
             return response.json()
         except ValueError:
+            # return dict()
             raise APIRequestException('Invalid Response: %s' % response.text)
 
     def _get(self, uri: str, **kwargs):
@@ -140,6 +142,10 @@ class Client:
         return {"Status": self._post(uri,data=json.dumps(fields))}
 
     def login(self):
+        print(f'logging in as: {self.username} ; len(password)={len(self.password)}')
+        if self.username == "" and self.password == "":
+            print('empty username and password; authfile is likely incorrect!')
+
         uri = self._create_login_uri()
 
         h = self.headers.copy()
@@ -151,10 +157,20 @@ class Client:
         
         data = MultipartEncoder(fields=fields, boundary='----WebKitFormBoundary'+wfb_id)
         h["content-type"] = data.content_type
-
-        response = self._post(uri=uri,data=data,headers=h)
-        self.access_token = response['access_token']
-        self.api_session_data = response['session']
-        self.headers["authorization"] = 'Bearer '+ self.access_token
-        self.session.headers.update(self.headers)
-        self.logged = True
+        
+        try:
+            response = self._post(uri=uri,data=data,headers=h)
+            self.access_token = response['access_token']
+            self.api_session_data = response['session']
+            self.headers["authorization"] = 'Bearer '+ self.access_token
+            self.session.headers.update(self.headers)
+            self.logged = True
+            print('login SUCCESS.')
+            print("="*100)
+            
+        except APIRequestException:
+            self.logged = False
+            raise RuntimeError('login FAILED... check auth file?')
+        
+        
+        

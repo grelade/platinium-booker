@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<title>platinium reservations tool</title>
+<style>
+    body { 
+        margin: 0;
+        padding: 0;
+        font-family: 'OpenSans';
+        font-size: 14px;
+        line-height: 1.42857; 
+        color: #000505;
+    }
+    
+    #app {
+        clear: both;
+        float: left;
+        width: 100%;
+        position: relative;
+        padding: 10px 0px 40px;
+    }
+    
+    #navigationBar {
+        display: block;
+        width: 1140px;
+        min-width:1400px;
+        margin-right: auto;
+        margin-left: auto;
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+    #container {
+        display: block;
+        width: 1140px;
+        min-width:1400px;
+        margin-right: auto;
+        margin-left: auto;
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+    
+    table {
+        border-collapse: collapse;
+        border-spacing: 0;
+        width: 100%;
+        border: none;
+    }
+    
+    table thead {
+        background: #00b4cb;
+        color: #ffffff;
+        text-transform: uppercase;
+    }
+    table thead tr th {
+        height: 35px;
+        width: 200px;
+    }
+    table th.hour,td.hour {
+        width: 35px;
+        text-align: center;
+    }
+    table td, table th {
+        padding: 15px 10px;
+    }
+    table tbody .even {
+        background: #ffffff;
+    }
+    table tbody .odd {
+        background: #f2f2f2;
+    }
+    
+    table tr td,th {
+        border-left: 2px solid rgba(0, 0, 0, 0.05);
+    }
+    
+    h6 {
+        font-family: 'Ubuntu-Medium';
+        text-transform: uppercase;
+        font-size: 14px;
+        margin: 0px 0px 10px 0px;
+    }
+    
+    div.activity-cell {
+        cursor: pointer;
+    }
+    
+    td.cell {
+    }
+    
+    table tbody .even td, .odd td {
+        transition: background-color .3s linear;
+    }
+    table tbody .even td {
+        background: #ffffff;  
+    }
+    
+    table tbody .odd td {
+        background: #f2f2f2;  
+    }  
+    
+    table tbody .even td.reserved {
+        background: #00f2f0;
+
+    }
+    
+    table tbody .odd td.reserved {
+        background: #00e8e2;
+    }
+    
+    select#locs {
+        padding: 5px;
+        margin: 10px 0px;
+    }
+
+</style>  
+</head>
+    
+<body>
+    
+<div id="app">
+<div id="navigationBar">
+    <div id="buttons">
+        
+        <div>
+        <label for="locations">location</label>
+          <select name="locations" id="locs">
+          </select>
+        </div>
+        
+        <div>
+        <label for="classes">reservations file</label> 
+
+            <input name="classes" id="classFile" type="file" accept="application/json">
+            <div>
+                <button id="newButton">New</button>
+                <button id="loadButton">Load</button>
+                <button id="saveButton">Save</button>
+            </div>
+        </div>
+        
+    </div>
+    <div id="msg">&nbsp;</div>
+</div>
+<div id="container">
+__CONTAINER__
+</div>
+    
+</div>
+    
+<script>
+
+function clearReservations() {
+    $("td.cell").removeClass("reserved");
+}
+    
+function activityCellToDict(cell) {
+    var dict = {'location_id': parseInt(cell.attr("data-location-id")),
+                'class_name': cell.attr("data-class-name"),
+                'class_id': parseInt(cell.attr("data-class-id")),
+                'class_time': cell.attr("data-class-time")
+               }
+    return dict
+}
+    
+function loadJSONToTables(json) {
+
+    var day;
+    var dict;
+    var div;
+    var selector;
+    var td;
+    
+    clearReservations();
+    
+    $("td.cell").each(function(i) {
+        // div.activity-cell;
+        td = $(this);
+        selector = $(this).children('div.activity-cell');
+        
+        if (selector.length) {
+            div = selector.eq(0);
+
+            day = div.attr('data-day');
+            dict = activityCellToDict(div);
+
+            json[day].forEach(function (item, index) {
+                if (item.location_id == dict.location_id & 
+                    item.class_name == dict.class_name & 
+                    item.class_id == dict.class_id & 
+                    item.class_time == dict.class_time ) { td.addClass("reserved"); }
+            });
+        }
+    });
+
+}
+    
+function convertTablesToJSON() {
+
+    var json = {"MON":[],
+                "TUE":[],
+                "WED":[],
+                "THU":[],
+                "FRI":[],
+                "SAT":[],
+                "SUN":[]
+               };
+    var div;
+    var day;
+    var dict;
+    var selector;
+    
+    $("td.reserved").each(function(i){
+
+        selector = $(this).children('div.activity-cell');
+        if (selector.length) {
+            div = selector.eq(0);
+            day = div.attr('data-day');
+            dict = activityCellToDict(div);
+            json[day].push(dict);
+        }
+    });
+
+    return json;
+}
+    
+function saveJSON(jsonData,file) {
+
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(jsonData, null, 2)], {
+    type: "text/plain"
+  }));
+  a.setAttribute("download", file);
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+    
+
+
+$(document).ready(function(){
+
+    var currTable;
+    
+    // const locationIds = ["loc1","loc2"];
+    // const locationNames = ["Lea","Krakowska"];
+    const locationIds = __LOCATIONIDS__;
+    const locationNames = __LOCATIONNAMES__;
+    
+    const zip = (a, b) => a.map((k, i) => [k, b[i]]);
+    
+    zip(locationIds,locationNames).forEach(function(item,index){
+        var id = item[0];
+        var name = item[1];
+        $("#"+id).hide();
+        $("#locs").append('<option value='+id+'>'+name+'</option>');
+    });
+    
+    currTable = locationIds[0];
+    $('#'+currTable).show();
+    
+    
+    $("select#locs").change(function(){
+
+        $('#'+currTable).hide();
+        currTable = $(this).val();
+        $('#'+currTable).show();
+        
+    });
+    
+    $("td.cell").click(function(){
+        $(this).toggleClass("reserved");
+    });
+    
+    $("#newButton").click(function(){
+
+        clearReservations();
+        $("#classFile").val(''); 
+        $("#msg").text("reservations reset");
+    });
+
+    $("#loadButton").click(function(){
+
+        var file = document.getElementById('classFile').files[0];
+        if (file) {
+            // create reader
+            var reader = new FileReader();
+            reader.readAsText(file);
+            reader.addEventListener("load", e => {
+              var jsonData = JSON.parse(reader.result);
+                loadJSONToTables(jsonData);
+                $("#msg").text("reservations file loaded");
+                $("#classFile").val(''); 
+            });
+        }
+    });
+
+    $("#saveButton").click(function(){
+
+        jsonData = convertTablesToJSON();
+        saveJSON(jsonData,"reservations.json");
+        $("#msg").text("saving reservations.json...");
+    });
+});
+
+</script>
+    
+</body>
+</html>

@@ -1,0 +1,110 @@
+{
+  "MON": [
+    {
+      "location_id": 4,
+      "class_name": "KORT 2 - Rezerwacja Squash",
+      "class_id": 689,
+      "class_time": "06:30"
+    },
+    {
+      "location_id": 6,
+      "class_name": "BODY SHAPE",
+      "class_id": 8235,
+      "class_time": "09:00"
+    },
+    {
+      "location_id": 6,
+      "class_name": "ZDROWY KRĘGOSŁUP",
+      "class_id": 8236,
+      "class_time": "10:00"
+    },
+    {
+      "location_id": 7,
+      "class_name": "SHAPER FULL BODY&ABS",
+      "class_id": 5794,
+      "class_time": "07:00"
+    },
+    {
+      "location_id": 7,
+      "class_name": "BRZUCHOMANIA",
+      "class_id": 7219,
+      "class_time": "08:00"
+    }
+  ],
+  "TUE": [
+    {
+      "location_id": 6,
+      "class_name": "STRETCHING",
+      "class_id": 7130,
+      "class_time": "10:00"
+    },
+    {
+      "location_id": 7,
+      "class_name": "STRETCHING",
+      "class_id": 7228,
+      "class_time": "10:00"
+    }
+  ],
+  "WED": [
+    {
+      "location_id": 4,
+      "class_name": "PUPOMANIA",
+      "class_id": 8148,
+      "class_time": "08:00"
+    },
+    {
+      "location_id": 4,
+      "class_name": "KORT 2 - Rezerwacja Squash",
+      "class_id": 460,
+      "class_time": "08:30"
+    },
+    {
+      "location_id": 6,
+      "class_name": "BODY SHAPE",
+      "class_id": 7250,
+      "class_time": "09:00"
+    },
+    {
+      "location_id": 3,
+      "class_name": "BRZUCHOMANIA",
+      "class_id": 6923,
+      "class_time": "09:00"
+    }
+  ],
+  "THU": [],
+  "FRI": [
+    {
+      "location_id": 4,
+      "class_name": "KORT 1 - Rezerwacja Squash",
+      "class_id": 586,
+      "class_time": "07:30"
+    },
+    {
+      "location_id": 7,
+      "class_name": "ZDROWY KRĘGOSŁUP",
+      "class_id": 8786,
+      "class_time": "09:00"
+    },
+    {
+      "location_id": 3,
+      "class_name": "ABT",
+      "class_id": 6898,
+      "class_time": "09:00"
+    },
+    {
+      "location_id": 3,
+      "class_name": "ZDROWY KRĘGOSŁUP",
+      "class_id": 6899,
+      "class_time": "10:00"
+    }
+  ],
+  "SAT": [
+    {
+      "location_id": 4,
+      "class_name": "KORT 2 - Rezerwacja Squash",
+      "class_id": 646,
+      "class_time": "08:30"
+    }
+  ],
+  "SUN": []
+}
